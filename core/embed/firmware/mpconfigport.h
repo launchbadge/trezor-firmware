@@ -162,6 +162,9 @@ extern const struct _mp_obj_module_t mp_module_trezorutils;
     { MP_ROM_QSTR(MP_QSTR_trezorui), MP_ROM_PTR(&mp_module_trezorui) }, \
     { MP_ROM_QSTR(MP_QSTR_trezorutils), MP_ROM_PTR(&mp_module_trezorutils) },
 
+#define MICROPY_PORT_CONSTANTS \
+    { MP_ROM_QSTR(MP_QSTR_utils), MP_ROM_PTR(&mp_module_trezorutils) },
+
 #define MP_STATE_PORT MP_STATE_VM
 
 #define MICROPY_PORT_ROOT_POINTERS \

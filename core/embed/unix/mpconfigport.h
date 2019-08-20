@@ -291,6 +291,9 @@ extern const struct _mp_obj_module_t mp_module_trezorutils;
   MICROPY_PY_TREZORUI_DEF                                                  \
   MICROPY_PY_TREZORUTILS_DEF
 
+#define MICROPY_PORT_CONSTANTS \
+    { MP_ROM_QSTR(MP_QSTR_utils), MP_ROM_PTR(&mp_module_trezorutils) },
+
 // type definitions for the specific machine
 
 // For size_t and ssize_t

@@ -24,11 +24,27 @@ build core firmware:
     - core/build/bootloader/bootloader.bin
     expire_in: 1 week
 
+build core firmware bitcoinonly:
+  stage: build
+  variables:
+    BITCOIN_ONLY: "1"
+  script:
+    - cd core
+    - pipenv run make build_firmware
+
 build core unix:
   stage: build
   script:
     - cd core
     - pipenv run make build_unix
+
+build core unix bitcoinonly:
+  stage: build
+  variables:
+    BITCOIN_ONLY: "1"
+  script:
+    - cd core
+    - pipenv run make build_unix_frozen
 
 build core unix frozen:
   stage: build
