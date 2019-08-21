@@ -10,6 +10,7 @@ if False:
 class RecoveryAborted(Exception):
     pass
 
+
 _GROUP_STORAGE_OFFSET = 16
 
 

@@ -9,6 +9,9 @@ from apps.common import mnemonic, storage
 from apps.common.layout import show_success
 from apps.management.recovery_device import layout
 
+if False:
+    from typing import List
+
 
 async def recovery_homescreen() -> None:
     # recovery process does not communicate on the wire
@@ -131,7 +134,6 @@ async def _request_secret(
         group_count = storage.recovery.get_slip39_group_count()
         if group_count:
             group_threshold = storage.recovery.get_slip39_group_threshold()
-            groups_remaining = storage.recovery.get_slip39_groups_remaining()
             advanced_shamir = group_count > 1
             mnemonics = storage.recovery_shares.fetch(group_count)
         else:
@@ -139,12 +141,7 @@ async def _request_secret(
             advanced_shamir = False
 
         if advanced_shamir:
-            identifiers = []
-            for mnemonic in mnemonics:
-                identifier = " ".join(mnemonic.split(" ")[0:3])
-                identifiers.append(identifier)
-                identifiers = list(set(identifiers))
-            await layout.show_remaining_shares(ctx, identifiers, group_threshold)
+            await _show_remaining_groups_and_shares(ctx, group_threshold, mnemonics)
 
         try:
             words = await layout.request_mnemonic(
@@ -197,7 +194,9 @@ async def _request_share_next_screen(ctx: wire.Context, mnemonic_type: int) -> N
             # 'remaining' should be stored at this point
             raise RuntimeError
         if groups_remaining:
-            content = layout.RecoveryHomescreen("More shares needed", "for this recovery")
+            content = layout.RecoveryHomescreen(
+                "More shares needed", "for this recovery"
+            )
             await layout.homescreen_dialog(ctx, content, "Enter share")
         else:
             if remaining == 1:
@@ -208,3 +207,14 @@ async def _request_share_next_screen(ctx: wire.Context, mnemonic_type: int) -> N
             await layout.homescreen_dialog(ctx, content, "Enter share")
     else:
         raise RuntimeError
+
+
+async def _show_remaining_groups_and_shares(
+    ctx: wire.Context, group_threshold: int, mnemonics: List[str]
+) -> None:
+    identifiers = []
+    for m in mnemonics:
+        identifier = " ".join(m.split(" ")[0:3])
+        identifiers.append(identifier)
+        identifiers = list(set(identifiers))
+    return await layout.show_remaining_shares(ctx, identifiers, group_threshold)

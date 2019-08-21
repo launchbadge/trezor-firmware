@@ -53,7 +53,11 @@ async def request_word_count(ctx: wire.Context, dry_run: bool) -> int:
 
 
 async def request_mnemonic(
-    ctx: wire.Context, count: int, mnemonic_type: int, mnemonics: List[str], advanced_shamir: bool = False
+    ctx: wire.Context,
+    count: int,
+    mnemonic_type: int,
+    mnemonics: List[str],
+    advanced_shamir: bool = False,
 ) -> str:
     await ctx.call(ButtonRequest(code=ButtonRequestType.MnemonicInput), ButtonAck)
 
@@ -93,12 +97,13 @@ async def request_mnemonic(
 
     return " ".join(words)
 
-async def show_remaining_shares(ctx: wire.Context, groups: List[str], group_threshold: int) -> None:
+
+async def show_remaining_shares(
+    ctx: wire.Context, groups: List[str], group_threshold: int
+) -> None:
     pages = []
     for group in groups:
-        text = Text(
-            "Remaining Shares"
-        )
+        text = Text("Remaining Shares")
         text.bold("1 More share starting")
         words = group.split(" ")
         for word in words:
@@ -106,28 +111,27 @@ async def show_remaining_shares(ctx: wire.Context, groups: List[str], group_thre
         pages.append(text)
 
     if group_threshold > len(groups):
-        text = Text(
-            "Remaining Shares"
-        )
+        text = Text("Remaining Shares")
         text.bold("%s More groups starting" % (group_threshold - len(groups)))
         words = groups[0].split(" ")[0:2]
         for word in words:
             text.normal(word)
         pages.append(text)
 
-    return await confirm(ctx, Paginated(pages))
+    return await confirm(ctx, Paginated(pages), confirm="Continue", major_confirm=True)
 
-async def show_share_success(ctx: wire.Context) -> None:
-    text = Text(
-        "Success",
-        ui.ICON_CHECK
-    )
+
+async def show_share_success(
+    ctx: wire.Context, share_index: int, group_index: int
+) -> None:
+    text = Text("Success", ui.ICON_CHECK)
     text.bold("You have entered")
-    text.bold("Share 2")
+    text.bold("Share %s" % share_index)
     text.normal("from")
-    text.bold("Group 1")
+    text.bold("Group %s" % group_index)
 
     return await confirm(ctx, text)
+
 
 async def show_dry_run_result(
     ctx: wire.Context, result: bool, mnemonic_type: int

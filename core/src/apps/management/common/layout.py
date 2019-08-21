@@ -122,16 +122,27 @@ async def _show_confirmation_success(
             if group_index is None:
                 subheader = ("You have finished", "verifying your", "recovery shares.")
             else:
-                subheader = ("You have finished", "verifying your", "recovery shares.", "for group %s" % (group_index + 1))
+                subheader = (
+                    "You have finished",
+                    "verifying your",
+                    "recovery shares.",
+                    "for group %s" % (group_index + 1),
+                )
         else:
             subheader = ("You have finished", "verifying your", "recovery seed.")
         text = []
     else:
         if group_index is None:
-            subheader = ("Recovery share #%s" % (share_index + 1), "checked successfully.")
+            subheader = (
+                "Recovery share #%s" % (share_index + 1),
+                "checked successfully.",
+            )
             text = ["Continue with share #%s." % (share_index + 2)]
         else:
-            subheader = ("Group %s / Share %s" % ((group_index + 1), (share_index + 1)), "checked successfully.")
+            subheader = (
+                "Group %s / Share %s" % ((group_index + 1), (share_index + 1)),
+                "checked successfully.",
+            )
             text = ("Continue with the next ", "share.")
 
     return await show_success(ctx, text, subheader=subheader)
@@ -480,7 +491,11 @@ async def slip39_group_show_and_confirm_shares(ctx, shares):
                     ctx, share_index, share_words, group_index
                 ):
                     await _show_confirmation_success(
-                        ctx, share_index, num_of_shares=len(shares), slip39=True, group_index=group_index
+                        ctx,
+                        share_index,
+                        num_of_shares=len(shares),
+                        slip39=True,
+                        group_index=group_index,
                     )
                     break  # this share is confirmed, go to next one
                 else:
@@ -608,55 +623,29 @@ class ShamirNumInput(ui.Control):
                     second_line_text = "will each hold one share."
                 else:
                     first_line_text = "Sets number of shares"
-                    second_line_text = "for group %s" % (self.group_id+1)
+                    second_line_text = "for group %s" % (self.group_id + 1)
                 ui.display.text(
-                    12,
-                    130,
-                    first_line_text,
-                    ui.BOLD,
-                    ui.FG,
-                    ui.BG,
-                    ui.WIDTH - 12,
+                    12, 130, first_line_text, ui.BOLD, ui.FG, ui.BG, ui.WIDTH - 12
                 )
-                ui.display.text(
-                    12, 156, second_line_text, ui.NORMAL, ui.FG, ui.BG
-                )
+                ui.display.text(12, 156, second_line_text, ui.NORMAL, ui.FG, ui.BG)
             elif self.step is ShamirNumInput.SET_THRESHOLD:
                 if self.group_id is None:
                     first_line_text = "For recovery you need"
                     second_line_text = "any %s of the shares." % count
                 else:
                     first_line_text = "Number of shares needed"
-                    second_line_text = "to form Group %s" % (self.group_id+1)
+                    second_line_text = "to form Group %s" % (self.group_id + 1)
+                ui.display.text(12, 130, first_line_text, ui.NORMAL, ui.FG, ui.BG)
                 ui.display.text(
-                    12, 130, first_line_text, ui.NORMAL, ui.FG, ui.BG
-                )
-                ui.display.text(
-                    12,
-                    156,
-                    second_line_text,
-                    ui.BOLD,
-                    ui.FG,
-                    ui.BG,
-                    ui.WIDTH - 12,
+                    12, 156, second_line_text, ui.BOLD, ui.FG, ui.BG, ui.WIDTH - 12
                 )
             elif self.step is ShamirNumInput.SET_GROUPS:
+                ui.display.text(12, 130, "A group is made of", ui.NORMAL, ui.FG, ui.BG)
                 ui.display.text(
-                    12, 130, "A group is made of", ui.NORMAL, ui.FG, ui.BG
-                )
-                ui.display.text(
-                    12,
-                    156,
-                    "recovery shares.",
-                    ui.NORMAL,
-                    ui.FG,
-                    ui.BG,
-                    ui.WIDTH - 12,
+                    12, 156, "recovery shares.", ui.NORMAL, ui.FG, ui.BG, ui.WIDTH - 12
                 )
             elif self.step is ShamirNumInput.SET_GROUP_THRESHOLD:
-                ui.display.text(
-                    12, 130, "Required number of", ui.NORMAL, ui.FG, ui.BG
-                )
+                ui.display.text(12, 130, "Required number of", ui.NORMAL, ui.FG, ui.BG)
                 ui.display.text(
                     12,
                     156,
