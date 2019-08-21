@@ -134,6 +134,7 @@ async def _request_secret(
         group_count = storage.recovery.get_slip39_group_count()
         if group_count:
             group_threshold = storage.recovery.get_slip39_group_threshold()
+            shares_remaining = storage.recovery.get_slip39_shares_remaining()
             advanced_shamir = group_count > 1
             mnemonics = storage.recovery_shares.fetch(group_count)
         else:
@@ -141,7 +142,9 @@ async def _request_secret(
             advanced_shamir = False
 
         if advanced_shamir:
-            await _show_remaining_groups_and_shares(ctx, group_threshold, mnemonics)
+            await _show_remaining_groups_and_shares(
+                ctx, group_threshold, mnemonics, shares_remaining
+            )
 
         try:
             words = await layout.request_mnemonic(
@@ -189,11 +192,11 @@ async def _request_share_first_screen(
 async def _request_share_next_screen(ctx: wire.Context, mnemonic_type: int) -> None:
     if mnemonic_type == mnemonic.TYPE_SLIP39:
         remaining = storage.recovery.get_remaining()
-        groups_remaining = storage.recovery.get_slip39_groups_remaining()
+        shares_remaining = storage.recovery.get_slip39_shares_remaining()
         if not remaining:
             # 'remaining' should be stored at this point
             raise RuntimeError
-        if groups_remaining:
+        if shares_remaining and len(shares_remaining.strip(b"\x00")) > 0:
             content = layout.RecoveryHomescreen(
                 "More shares needed", "for this recovery"
             )
@@ -210,11 +213,22 @@ async def _request_share_next_screen(ctx: wire.Context, mnemonic_type: int) -> N
 
 
 async def _show_remaining_groups_and_shares(
-    ctx: wire.Context, group_threshold: int, mnemonics: List[str]
+    ctx: wire.Context,
+    group_threshold: int,
+    mnemonics: List[str],
+    shares_remaining: bytearray,
 ) -> None:
     identifiers = []
     for m in mnemonics:
-        identifier = " ".join(m.split(" ")[0:3])
+        identifier = " ".join(
+            m.split(" ")[0:3]
+        )  # TODO: is there a betterway to do this?
         identifiers.append(identifier)
+        # list only unique identifiers
         identifiers = list(set(identifiers))
-    return await layout.show_remaining_shares(ctx, identifiers, group_threshold)
+        # remove default remainig values from bytearray
+        # the remaining values correspond to remaining shares in identifiers in order
+        shares_remaining = shares_remaining.strip(b"\x10")
+    return await layout.show_remaining_shares(
+        ctx, identifiers, group_threshold, shares_remaining
+    )

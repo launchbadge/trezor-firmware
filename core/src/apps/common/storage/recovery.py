@@ -16,7 +16,7 @@ _SLIP39_THRESHOLD          = const(0x04)  # int
 _SLIP39_ITERATION_EXPONENT = const(0x06)  # int
 _SLIP39_GROUP_COUNT        = const(0x07)  # int
 _SLIP39_GROUP_THRESHOLD    = const(0x08)  # int
-_SLIP39_GROUPS_REMAINING   = const(0x09)  # int
+_SLIP39_SHARES_REMAINING   = const(0x09)  # bytearray
 # fmt: on
 
 if False:
@@ -95,12 +95,15 @@ def get_slip39_group_threshold() -> Optional[int]:
     return common._get_uint8(_NAMESPACE, _SLIP39_GROUP_THRESHOLD)
 
 
-def set_slip39_groups_remaining(groups_remaining: int) -> None:
-    common._set_uint8(_NAMESPACE, _SLIP39_GROUPS_REMAINING, groups_remaining)
+# TODO: better names?
+def set_slip39_shares_remaining(shares_remaining: bytearray) -> None:
+    common._set(_NAMESPACE, _SLIP39_SHARES_REMAINING, shares_remaining)
 
 
-def get_slip39_groups_remaining() -> Optional[int]:
-    return common._get_uint8(_NAMESPACE, _SLIP39_GROUPS_REMAINING)
+def get_slip39_shares_remaining() -> Optional[bytearray]:
+    """ returns bytearray of remaining shares. result[0] = remaining shares for group 1
+        default value for shares that haven't been entered yet is 0x10 """
+    return common._get(_NAMESPACE, _SLIP39_SHARES_REMAINING)
 
 
 def end_progress() -> None:
@@ -113,5 +116,5 @@ def end_progress() -> None:
     common._delete(_NAMESPACE, _SLIP39_ITERATION_EXPONENT)
     common._delete(_NAMESPACE, _SLIP39_GROUP_COUNT)
     common._delete(_NAMESPACE, _SLIP39_GROUP_THRESHOLD)
-    common._delete(_NAMESPACE, _SLIP39_GROUPS_REMAINING)
+    common._delete(_NAMESPACE, _SLIP39_SHARES_REMAINING)
     recovery_shares.delete()

@@ -99,20 +99,30 @@ async def request_mnemonic(
 
 
 async def show_remaining_shares(
-    ctx: wire.Context, groups: List[str], group_threshold: int
+    ctx: wire.Context,
+    groups: List[str],
+    group_threshold: int,
+    shares_remaining: bytearray,
 ) -> None:
     pages = []
-    for group in groups:
-        text = Text("Remaining Shares")
-        text.bold("1 More share starting")
-        words = group.split(" ")
-        for word in words:
-            text.normal(word)
-        pages.append(text)
+    for index, group in enumerate(groups):
+        if shares_remaining[index] > 0:
+            text = Text("Remaining Shares")
+            if shares_remaining[index] > 1:
+                text.bold("%s more shares starting" % shares_remaining[index])
+            else:
+                text.bold("%s more share starting" % shares_remaining[index])
+            words = group.split(" ")
+            for word in words:
+                text.normal(word)
+            pages.append(text)
 
     if group_threshold > len(groups):
         text = Text("Remaining Shares")
-        text.bold("%s More groups starting" % (group_threshold - len(groups)))
+        if group_threshold - len(groups) > 1:
+            text.bold("%s more groups starting" % (group_threshold - len(groups)))
+        else:
+            text.bold("%s more group starting" % (group_threshold - len(groups)))
         words = groups[0].split(" ")[0:2]
         for word in words:
             text.normal(word)

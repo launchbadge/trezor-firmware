@@ -623,9 +623,9 @@ class ShamirNumInput(ui.Control):
                     second_line_text = "will each hold one share."
                 else:
                     first_line_text = "Sets number of shares"
-                    second_line_text = "for group %s" % (self.group_id + 1)
+                    second_line_text = "for Group %s" % (self.group_id + 1)
                 ui.display.text(
-                    12, 130, first_line_text, ui.BOLD, ui.FG, ui.BG, ui.WIDTH - 12
+                    12, 130, first_line_text, ui.NORMAL, ui.FG, ui.BG, ui.WIDTH - 12
                 )
                 ui.display.text(12, 156, second_line_text, ui.NORMAL, ui.FG, ui.BG)
             elif self.step is ShamirNumInput.SET_THRESHOLD:
@@ -633,11 +633,11 @@ class ShamirNumInput(ui.Control):
                     first_line_text = "For recovery you need"
                     second_line_text = "any %s of the shares." % count
                 else:
-                    first_line_text = "Number of shares needed"
-                    second_line_text = "to form Group %s" % (self.group_id + 1)
+                    first_line_text = "Required number of "
+                    second_line_text = "shares to form Group %s" % (self.group_id + 1)
                 ui.display.text(12, 130, first_line_text, ui.NORMAL, ui.FG, ui.BG)
                 ui.display.text(
-                    12, 156, second_line_text, ui.BOLD, ui.FG, ui.BG, ui.WIDTH - 12
+                    12, 156, second_line_text, ui.NORMAL, ui.FG, ui.BG, ui.WIDTH - 12
                 )
             elif self.step is ShamirNumInput.SET_GROUPS:
                 ui.display.text(12, 130, "A group is made of", ui.NORMAL, ui.FG, ui.BG)

@@ -44,7 +44,8 @@ def _process_slip39(words: str) -> Optional[bytes]:
         raise ValueError("Threshold equal to 1 is not allowed.")
 
     remaining = storage.recovery.get_remaining()
-    groups_remaining = storage.recovery.get_slip39_groups_remaining()
+    # TODO: investigate why shares_remianing is bytes instead of bytearray
+    shares_remaining = storage.recovery.get_slip39_shares_remaining()
 
     # if this is the first share, parse and store metadata
     if not remaining:
@@ -56,7 +57,9 @@ def _process_slip39(words: str) -> Optional[bytes]:
         if group_count > 1:
             storage.recovery.set_slip39_group_count(group_count)
             storage.recovery.set_slip39_group_threshold(group_threshold)
-            storage.recovery.set_slip39_groups_remaining(group_threshold)
+            shares_remaining = bytearray([0x10] * group_count)
+            shares_remaining[group_index] = threshold - 1
+            storage.recovery.set_slip39_shares_remaining(shares_remaining)
         return None  # we need more shares
 
     # These should be checked by UI before so it's a Runtime exception otherwise
@@ -66,10 +69,21 @@ def _process_slip39(words: str) -> Optional[bytes]:
         raise RuntimeError("Slip39: This mnemonic was already entered")
 
     # add mnemonic to storage
-    remaining -= 1
-    storage.recovery.set_remaining(remaining)
+    if group_count > 1:
+        # TODO: investigate why shares_remianing is bytes instead of bytearray
+        shares_remaining = bytearray(shares_remaining)
+        shares_remaining[group_index] = shares_remaining[group_index] - 1
+        storage.recovery.set_slip39_shares_remaining(shares_remaining)
+    else:
+        remaining -= 1
+        storage.recovery.set_remaining(remaining)
+
     storage.recovery_shares.set(index + group_index * _GROUP_STORAGE_OFFSET, words)
-    if remaining != 0 or groups_remaining:
+
+    # TODO: investigate why attempting to strip bytearray we get an error
+    if remaining != 0 or (
+        shares_remaining and len(bytes(shares_remaining).strip(b"\x00")) != 0
+    ):
         return None  # we need more shares
 
     # combine shares and return the master secret
