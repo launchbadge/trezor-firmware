@@ -14,10 +14,19 @@
 # You should have received a copy of the License along with this library.
 # If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 
+import filecmp
+import itertools
+import os
+from pathlib import Path
+
 from trezorlib import debuglink, device
 from trezorlib.messages.PassphraseSourceType import HOST as PASSPHRASE_ON_HOST
 
 from . import conftest
+
+
+SAVE_SCREEN = os.environ.get("TREZOR_SAVE_SCREEN")
+SAVE_SCREEN_FIXTURES = os.environ.get("TREZOR_SAVE_SCREEN_FIXTURES")
 
 
 class TrezorTest:
@@ -40,8 +49,19 @@ class TrezorTest:
         device.wipe(self.client)
         self.client.open()
 
+        if SAVE_SCREEN:
+            remove_files(collect_images())
+
     def teardown_method(self, method):
         self.client.close()
+
+        if SAVE_SCREEN:
+            images = collect_images()
+            if SAVE_SCREEN_FIXTURES:
+                record_fixtures(images, get_test_id(method))
+            else:
+                assert_images(images, get_test_id(method))
+                remove_files(images)
 
     def _setup_mnemonic(self, mnemonic=None, pin="", passphrase=False, lock=True):
         if mnemonic is None:
@@ -74,6 +94,61 @@ class TrezorTest:
 
     def setup_mnemonic_pin_passphrase(self, lock=True):
         self._setup_mnemonic(pin=TrezorTest.pin4, passphrase=True, lock=lock)
+
+
+SCREENSHOT_PATH = "./core/src"
+SCREENSHOT_FIXTURE_PATH = "./tests/ui_tests"
+
+
+def get_test_id(method):
+    return "{}_{}".format(method.__self__.__class__.__name__, method.__name__)
+
+
+def collect_images():
+    return list(Path(SCREENSHOT_PATH).glob("*.png"))
+
+
+def collect_fixtures(test_id):
+    return list(Path(SCREENSHOT_FIXTURE_PATH).glob("{}/*.png".format(test_id)))
+
+
+def assert_images(images, test_id):
+    fixtures = collect_fixtures(test_id)
+    if not fixtures:
+        return
+    images = sorted(images)
+    fixtures = sorted(fixtures)
+
+    for fixture, image in itertools.zip_longest(fixtures, images):
+        assert fixture is not None, "Missing fixture for image {}".format(image)
+        assert image is not None, "Missing image for fixture {}".format(fixture)
+        assert filecmp.cmp(fixture, image), "Image {} and fixture {} differ".format(
+            image, fixture
+        )
+
+
+def record_fixtures(images, test_id):
+    fixture_dir = Path(SCREENSHOT_FIXTURE_PATH) / test_id
+
+    if fixture_dir.is_dir():
+        # remove old fixtures
+        remove_files(collect_fixtures(test_id))
+    else:
+        # create the fixture dir, if not present
+        print("Creating", fixture_dir)
+        fixture_dir.mkdir()
+
+    # move the recorded images into the fixture locations
+    for index, image in enumerate(images):
+        fixture = fixture_dir / "{}.png".format(index)
+        print("Saving", image, "into", fixture)
+        image.replace(fixture)
+
+
+def remove_files(files):
+    for f in files:
+        print("Removing", f)
+        f.unlink()
 
 
 def generate_entropy(strength, internal_entropy, external_entropy):
